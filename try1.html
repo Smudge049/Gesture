@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive 3D Particle System with Hand Gestures</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.18.0/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/handpose@0.0.7/dist/handpose.min.js"></script>
+    <style>
+        body { margin: 0; overflow: hidden; }
+        canvas { display: block; }
+        #video { position: absolute; top: 10px; right: 10px; width: 200px; height: 150px; border: 1px solid #fff; }
+    </style>
+</head>
+<body>
+    <video id="video" autoplay muted></video>
+    <script>
+        // Initialize Three.js scene
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // Particle system variables
+        let particles, particleSystem, particleGeometry, particleMaterial;
+        let currentTemplate = 'hearts'; // Default template
+        const templates = {
+            hearts: createHeartParticles,
+            flowers: createFlowerParticles,
+            saturn: createSaturnParticles,
+            fireworks: createFireworkParticles
+        };
+        let expansion = 1.0;
+        let colorHue = 0;
+
+        // Hand tracking setup
+        const video = document.getElementById('video');
+        let handposeModel;
+        let predictions = [];
+
+        async function setupHandTracking() {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            video.srcObject = stream;
+            handposeModel = await handpose.load();
+            detectHands();
+        }
+
+        async function detectHands() {
+            predictions = await handposeModel.estimateHands(video);
+            interpretGestures();
+            requestAnimationFrame(detectHands);
+        }
+
+        function interpretGestures() {
+            if (predictions.length > 0) {
+                const hand = predictions[0];
+                const landmarks = hand.landmarks;
+
+                // Simple gesture detection: distance between thumb and index finger for expansion
+                const thumbTip = landmarks[4];
+                const indexTip = landmarks[8];
+                const distance = Math.sqrt(
+                    Math.pow(thumbTip[0] - indexTip[0], 2) +
+                    Math.pow(thumbTip[1] - indexTip[1], 2)
+                );
+                expansion = Math.max(0.5, Math.min(2.0, distance / 100)); // Scale expansion
+
+                // Color change based on hand position (e.g., x-coordinate)
+                colorHue = (landmarks[9][0] / video.videoWidth) * 360; // Hue from 0-360
+
+                // Template switching: if fist (all fingers closed), cycle templates
+                const fingerTips = [landmarks[4], landmarks[8], landmarks[12], landmarks[16], landmarks[20]];
+                const palm = landmarks[0];
+                let isFist = true;
+                fingerTips.forEach(tip => {
+                    if (Math.sqrt(Math.pow(tip[0] - palm[0], 2) + Math.pow(tip[1] - palm[1], 2)) > 50) {
+                        isFist = false;
+                    }
+                });
+                if (isFist) {
+                    switchTemplate();
+                }
+            }
+        }
+
+        function switchTemplate() {
+            const keys = Object.keys(templates);
+            const currentIndex = keys.indexOf(currentTemplate);
+            currentTemplate = keys[(currentIndex + 1) % keys.length];
+            updateParticles();
+        }
+
+        function createHeartParticles() {
+            const positions = [];
+            const colors = [];
+            for (let i = 0; i < 1000; i++) {
+                const t = (i / 1000) * Math.PI * 2;
+                const x = 16 * Math.pow(Math.sin(t), 3);
+                const y = 13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t);
+                const z = Math.random() * 10 - 5;
+                positions.push(x, y, z);
+                colors.push(Math.random(), Math.random(), Math.random());
+            }
+            return { positions, colors };
+        }
+
+        function createFlowerParticles() {
+            const positions = [];
+            const colors = [];
+            for (let i = 0; i < 1000; i++) {
+                const angle = (i / 1000) * Math.PI * 2;
+                const radius = Math.sin(angle * 5) * 10 + 5;
+                const x = Math.cos(angle) * radius;
+                const y = Math.sin(angle) * radius;
+                const z = Math.random() * 10 - 5;
+                positions.push(x, y, z);
+                colors.push(Math.random(), Math.random(), Math.random());
+            }
+            return { positions, colors };
+        }
+
+        function createSaturnParticles() {
+            const positions = [];
+            const colors = [];
+            // Ring
+            for (let i = 0; i < 500; i++) {
+                const angle = (i / 500) * Math.PI * 2;
+                const x = Math.cos(angle) * 15;
+                const y = Math.sin(angle) * 15;
+                const z = (Math.random() - 0.5) * 2;
+                positions.push(x, y, z);
+                colors.push(0.8, 0.6, 0.2);
+            }
+            // Planet
+            for (let i = 0; i < 500; i++) {
+                const phi = Math.acos(2 * Math.random() - 1);
+                const theta = Math.random() * Math.PI * 2;
+                const x = Math.sin(phi) * Math.cos(theta) * 5;
+                const y = Math.sin(phi) * Math.sin(theta) * 5;
+                const z = Math.cos(phi) * 5;
+                positions.push(x, y, z);
+                colors.push(0.5, 0.5, 0.5);
+            }
+            return { positions, colors };
+        }
+
+        function createFireworkParticles() {
+            const positions = [];
+            const colors = [];
+            for (let i = 0; i < 1000; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const radius = Math.random() * 20;
+                const x = Math.cos(angle) * radius;
+                const y = Math.sin(angle) * radius;
+                const z = Math.random() * 20 - 10;
+                positions.push(x, y, z);
+                colors.push(Math.random(), Math.random(), Math.random());
+            }
+            return { positions, colors };
+        }
+
+        function updateParticles() {
+            if (particleSystem) {
+                scene.remove(particleSystem);
+            }
+            const { positions, colors } = templates[currentTemplate]();
+            particleGeometry = new THREE.BufferGeometry();
+            particleGeometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+            particleGeometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+            particleMaterial = new THREE.PointsMaterial({ size: 0.5, vertexColors: true });
+            particleSystem = new THREE.Points(particleGeometry, particleMaterial);
+            scene.add(particleSystem);
+        }
+
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // Update particle scale and color
+            if (particleSystem) {
+                particleSystem.scale.setScalar(expansion);
+                particleMaterial.color.setHSL(colorHue / 360, 1, 0.5);
+            }
+
+            // Rotate the particle system for visual effect
+            if (particleSystem) {
+                particleSystem.rotation.y += 0.01;
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        // Initialize
+        camera.position.z = 50;
+        updateParticles();
+        setupHandTracking();
+        animate();
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>
