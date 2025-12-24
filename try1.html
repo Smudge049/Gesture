@@ -148,8 +148,8 @@
             <span>Pinch: Change colors</span>
         </div>
         <div class="gesture-item">
-            <span class="gesture-emoji">✊</span>
-            <span>Fist: Switch template</span>
+            <span class="gesture-emoji">🤟</span>
+            <span>Three Fingers: Switch template</span>
         </div>
         <div class="gesture-item">
             <span class="gesture-emoji">✌️</span>
@@ -161,7 +161,7 @@
         </div>
     </div>
 
-    <div id="status">Initializing....</div>
+    <div id="status">Initializing...</div>
     <div id="template-display">Template: Galaxy</div>
 
     <div class="loading" id="loading">
@@ -197,8 +197,12 @@
             [[1.0, 0.3, 0.0], [1.0, 0.8, 0.0], [1.0, 1.0, 1.0]]    // Orange-Gold-White
         ];
 
-        // Templates
-        const templates = ['galaxy', 'heart', 'flower', 'saturn', 'fireworks', 'spiral', 'cube', 'sphere'];
+        // Expanded Templates - Now with 15 different particle formations
+        const templates = [
+            'galaxy', 'heart', 'flower', 'saturn', 'fireworks', 
+            'spiral', 'cube', 'sphere', 'torus', 'dna', 
+            'wave', 'tornado', 'constellation', 'atomic', 'phoenix'
+        ];
         let currentTemplateIndex = 0;
 
         function initThreeJS() {
@@ -355,13 +359,127 @@
                         break;
 
                     case 'sphere':
-                    default:
                         const sphereTheta = Math.random() * Math.PI * 2;
                         const spherePhi = Math.random() * Math.PI;
                         const sphereR = 20 + Math.random() * 10;
                         x = sphereR * Math.sin(spherePhi) * Math.cos(sphereTheta);
                         y = sphereR * Math.sin(spherePhi) * Math.sin(sphereTheta);
                         z = sphereR * Math.cos(spherePhi);
+                        break;
+
+                    case 'torus':
+                        const torusAngle1 = Math.random() * Math.PI * 2;
+                        const torusAngle2 = Math.random() * Math.PI * 2;
+                        const majorRadius = 20;
+                        const minorRadius = 8;
+                        x = (majorRadius + minorRadius * Math.cos(torusAngle2)) * Math.cos(torusAngle1);
+                        y = (majorRadius + minorRadius * Math.cos(torusAngle2)) * Math.sin(torusAngle1);
+                        z = minorRadius * Math.sin(torusAngle2);
+                        break;
+
+                    case 'dna':
+                        const dnaT = (i / particleCount) * Math.PI * 8;
+                        const dnaRadius = 10;
+                        const strand = i % 2;
+                        const phaseShift = strand * Math.PI;
+                        x = Math.cos(dnaT + phaseShift) * dnaRadius;
+                        y = dnaT * 3 - 30;
+                        z = Math.sin(dnaT + phaseShift) * dnaRadius;
+                        
+                        // Add connecting particles
+                        if (i % 50 === 0) {
+                            x = Math.cos(dnaT) * (Math.random() * dnaRadius);
+                            z = Math.sin(dnaT) * (Math.random() * dnaRadius);
+                        }
+                        break;
+
+                    case 'wave':
+                        const waveX = (i / particleCount) * 80 - 40;
+                        const waveZ = (i / particleCount) * 80 - 40;
+                        x = waveX;
+                        y = Math.sin(waveX * 0.2) * 10 + Math.cos(waveZ * 0.2) * 10;
+                        z = waveZ;
+                        break;
+
+                    case 'tornado':
+                        const tornadoHeight = (i / particleCount) * 60 - 30;
+                        const tornadoRadius = Math.abs(tornadoHeight) * 0.3 + 5;
+                        const tornadoAngle = (i / particleCount) * Math.PI * 10 + Math.random() * 0.5;
+                        x = Math.cos(tornadoAngle) * tornadoRadius;
+                        y = tornadoHeight;
+                        z = Math.sin(tornadoAngle) * tornadoRadius;
+                        
+                        particleVelocities[i3] = Math.cos(tornadoAngle + Math.PI/2) * 0.05;
+                        particleVelocities[i3 + 2] = Math.sin(tornadoAngle + Math.PI/2) * 0.05;
+                        break;
+
+                    case 'constellation':
+                        // Create star clusters connected by lines
+                        const clusterCount = 8;
+                        const clusterId = Math.floor(i / (particleCount / clusterCount));
+                        const clusterAngle = (clusterId / clusterCount) * Math.PI * 2;
+                        const clusterRadius = 25;
+                        const clusterCenterX = Math.cos(clusterAngle) * clusterRadius;
+                        const clusterCenterZ = Math.sin(clusterAngle) * clusterRadius;
+                        
+                        x = clusterCenterX + (Math.random() - 0.5) * 10;
+                        y = (Math.random() - 0.5) * 10;
+                        z = clusterCenterZ + (Math.random() - 0.5) * 10;
+                        break;
+
+                    case 'atomic':
+                        // Nucleus
+                        if (i < particleCount * 0.1) {
+                            const nucTheta = Math.random() * Math.PI * 2;
+                            const nucPhi = Math.random() * Math.PI;
+                            const nucR = Math.random() * 3;
+                            x = nucR * Math.sin(nucPhi) * Math.cos(nucTheta);
+                            y = nucR * Math.sin(nucPhi) * Math.sin(nucTheta);
+                            z = nucR * Math.cos(nucPhi);
+                        } else {
+                            // Electron orbits
+                            const orbitLevel = Math.floor(Math.random() * 3);
+                            const orbitRadius = (orbitLevel + 1) * 10;
+                            const orbitAngle = Math.random() * Math.PI * 2;
+                            const orbitTilt = Math.random() * Math.PI;
+                            
+                            x = Math.cos(orbitAngle) * orbitRadius;
+                            y = Math.sin(orbitTilt) * Math.sin(orbitAngle) * orbitRadius;
+                            z = Math.cos(orbitTilt) * Math.sin(orbitAngle) * orbitRadius;
+                        }
+                        break;
+
+                    case 'phoenix':
+                        // Bird-like shape with wings
+                        const phoenixT = (i / particleCount) * Math.PI * 2;
+                        const phoenixSection = Math.floor((i / particleCount) * 5);
+                        
+                        if (phoenixSection < 1) {
+                            // Body
+                            x = (Math.random() - 0.5) * 5;
+                            y = Math.random() * 20 - 10;
+                            z = (Math.random() - 0.5) * 5;
+                        } else if (phoenixSection < 3) {
+                            // Wings
+                            const wingSpan = 30;
+                            const wingY = Math.sin(phoenixT * 2) * 10;
+                            x = (phoenixSection === 1 ? 1 : -1) * (Math.random() * wingSpan);
+                            y = wingY;
+                            z = Math.abs(Math.cos(phoenixT * 3)) * 10 - 5;
+                        } else {
+                            // Tail
+                            const tailLength = 25;
+                            const tailCurve = Math.sin(phoenixT * 3) * 8;
+                            x = tailCurve;
+                            y = -Math.random() * tailLength;
+                            z = tailCurve * 0.5;
+                        }
+                        break;
+
+                    default:
+                        x = (Math.random() - 0.5) * 40;
+                        y = (Math.random() - 0.5) * 40;
+                        z = (Math.random() - 0.5) * 40;
                         break;
                 }
 
@@ -396,15 +514,17 @@
                 positions[i3 + 1] = baseY * expansionFactor + particleVelocities[i3 + 1];
                 positions[i3 + 2] = baseZ * expansionFactor + particleVelocities[i3 + 2];
                 
-                // Apply velocity for fireworks
-                if (currentTemplate === 'fireworks') {
-                    particleVelocities[i3 + 1] -= 0.01; // Gravity
+                // Apply velocity for special templates
+                if (currentTemplate === 'fireworks' || currentTemplate === 'tornado') {
+                    if (currentTemplate === 'fireworks') {
+                        particleVelocities[i3 + 1] -= 0.01; // Gravity
+                    }
                     particlePositions[i3] += particleVelocities[i3];
                     particlePositions[i3 + 1] += particleVelocities[i3 + 1];
                     particlePositions[i3 + 2] += particleVelocities[i3 + 2];
                     
                     // Reset if too far
-                    if (particlePositions[i3 + 1] < -50) {
+                    if (currentTemplate === 'fireworks' && particlePositions[i3 + 1] < -50) {
                         generateParticleTemplate(currentTemplate);
                     }
                 }
@@ -497,7 +617,6 @@
             const pinky_mcp = landmarks[17];
             
             const wrist = landmarks[0];
-            const palm_base = landmarks[0];
 
             // Helper function to calculate distance
             const distance = (p1, p2) => {
@@ -508,7 +627,7 @@
                 );
             };
 
-            // More reliable finger extension check using distances
+            // Finger extension check
             const getFingerExtension = (tip, mcp, wrist) => {
                 const tipToWrist = distance(tip, wrist);
                 const mcpToWrist = distance(mcp, wrist);
@@ -522,7 +641,7 @@
             const ringRatio = getFingerExtension(ring_tip, ring_mcp, wrist);
             const pinkyRatio = getFingerExtension(pinky_tip, pinky_mcp, wrist);
 
-            // Determine if fingers are extended (ratio > 1.3 means extended)
+            // Determine if fingers are extended
             const indexExtended = indexRatio > 1.3;
             const middleExtended = middleRatio > 1.3;
             const ringExtended = ringRatio > 1.3;
@@ -540,6 +659,12 @@
                 return 'open_palm';
             }
 
+            // THREE FINGERS gesture (index, middle, ring extended - pinky closed)
+            // This replaces the fist gesture
+            if (indexExtended && middleExtended && ringExtended && !pinkyExtended) {
+                return 'three_fingers';
+            }
+
             // Peace sign (index and middle extended, others closed)
             if (indexExtended && middleExtended && !ringExtended && !pinkyExtended) {
                 return 'peace';
@@ -550,25 +675,6 @@
                 // Check if thumb is pointing up
                 if (thumb_tip.y < thumb_mcp.y - 0.05) {
                     return 'thumbs_up';
-                }
-            }
-
-            // Fist (all fingers closed, tips close to palm)
-            const allFingersClosed = !indexExtended && !middleExtended && !ringExtended && !pinkyExtended;
-            
-            if (allFingersClosed) {
-                // Additional check: fingertips should be close to palm center
-                const palm_center = landmarks[9]; // Middle finger MCP as palm center reference
-                const avgTipDist = (
-                    distance(index_tip, palm_center) +
-                    distance(middle_tip, palm_center) +
-                    distance(ring_tip, palm_center) +
-                    distance(pinky_tip, palm_center)
-                ) / 4;
-                
-                // If average distance is small and thumb is not extended, it's a fist
-                if (avgTipDist < 0.15 && !thumbExtended) {
-                    return 'fist';
                 }
             }
 
@@ -595,8 +701,8 @@
                     particleGeometry.attributes.color.needsUpdate = true;
                     break;
 
-                case 'fist':
-                    // Switch template
+                case 'three_fingers':
+                    // Switch template (REPLACED FIST GESTURE)
                     currentTemplateIndex = (currentTemplateIndex + 1) % templates.length;
                     currentTemplate = templates[currentTemplateIndex];
                     createParticleSystem();
@@ -628,7 +734,7 @@
             }
         }
 
-        // Initialization of everything
+        // Initialize everything
         document.addEventListener('DOMContentLoaded', () => {
             initThreeJS();
             setupHandTracking();
@@ -636,4 +742,3 @@
     </script>
 </body>
 </html>
-
