@@ -7,3 +7,9 @@
   <li>Three Fingers</li>
   <li>Thumbs Up</li>
 </ul>
+
+<ul>
+  <b>3D particle system contains these shapes : </b>
+  <li>Galaxy</li>
+  <li>Heart</li>
+</ul>
