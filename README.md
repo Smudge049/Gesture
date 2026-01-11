@@ -12,4 +12,6 @@
   <b>3D particle system contains these shapes : </b>
   <li>Galaxy</li>
   <li>Heart</li>
+  <li>Flower</li>
+  <li>Saturn</li>
 </ul>
