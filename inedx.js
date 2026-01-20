@@ -1,4 +1,4 @@
-       /*This is a JavaScript file for 3D particle system operated on hand gestures*/
+       /* JavaScript file */
         // Three.js Setup
         let scene, camera, renderer, particles, particleGeometry, particleMaterial;
         let currentTemplate = 'galaxy';
