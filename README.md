@@ -1,6 +1,6 @@
 <h2>Interactive 3D particle System, Operates on hand gestures</h2>
 <ul>
-  <b>Gestures  </b>
+  <h3>Gestures  </h3>
   <li>Open Palm</li>
   <li>Pinch</li>
   <li>Peace Sign</li>
@@ -9,7 +9,7 @@
 </ul>
 
 <ul>
-  <b>3D particle system contains these shapes : </b>
+  <h3>3D particle system contains these shapes : </h3>
   <li>Galaxy</li>
   <li>Heart</li>
   <li>Flower</li>
