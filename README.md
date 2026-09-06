@@ -1,4 +1,5 @@
-<h2>Interactive 3D particle System, Operates on hand gestures</h2>
+<h2>Hands Gesture</h2>
+Gesture based 3D interactive particles system built using Three.js
 <ul>
   <h3>Gestures  </h3>
   <li>Open Palm</li>
